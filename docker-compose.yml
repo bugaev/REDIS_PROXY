@@ -1,0 +1,56 @@
+version: "2"
+services:
+  proxy-test:
+    environment:
+      - RUNNING_DOCKER=yes
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PROXY_HOST=proxy
+      - PROXY_PORT=5001
+      - CACHE_SIZE=3
+      - MAX_CONN=99
+      - FLASK_HOST=0.0.0.0
+      - FLASK_PORT=5001
+      - TCP_HOST=
+      - TCP_PORT=5010
+      - TTL=3
+    depends_on:
+      - proxy
+      - redis
+    build:
+      context: .
+      dockerfile: DockerfileTest
+    command: /code/test-docker.sh
+    links:
+      - redis
+      - proxy
+    volumes:
+      - .:/code
+  proxy:
+    build: .
+    command: pipenv run python proxy.py
+    ports:
+      - "5001"
+      - "5010"
+    volumes:
+      - .:/code
+    links:
+      - redis
+    environment:
+      - RUNNING_DOCKER=yes
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PROXY_HOST=proxy
+      - PROXY_PORT=5001
+      - CACHE_SIZE=3
+      - MAX_CONN=99
+      - FLASK_HOST=0.0.0.0
+      - FLASK_PORT=5001
+      - TCP_HOST=
+      - TCP_PORT=5010
+      - TTL=3
+
+  redis:
+    ports:
+      - "6379"
+    image: redis
